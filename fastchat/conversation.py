@@ -23,6 +23,7 @@ class SeparatorStyle(IntEnum):
     ADD_NEW_LINE_SINGLE = auto()
     LLAMA2 = auto()
     LLAMA3 = auto()
+    INTERNLM2 = auto()
     CHATGLM = auto()
     CHATML = auto()
     CHATINTERN = auto()
@@ -158,13 +159,25 @@ class Conversation:
             if self.system_message:
                 ret = system_prompt
             else:
-                ret = "<|begin_of_text|>"
+                ret = ""
             for i, (role, message) in enumerate(self.messages):
                 tag = self.roles[i % 2]
                 if message:
                     ret += tag + message + self.sep
                 else:
                     ret += tag
+            return ret
+        elif self.sep_style == SeparatorStyle.INTERNLM2:
+            #if self.system_message:
+            #    ret = system_prompt
+            #else:
+            ret = system_prompt
+            for i, (role, message) in enumerate(self.messages):
+                tag = self.roles[i % 2]
+                if message:
+                    ret += tag + "\n" + message + self.sep + "\n"
+                else:
+                    ret += tag + "\n"
             return ret
         elif self.sep_style == SeparatorStyle.CHATGLM:
             # source: https://huggingface.co/THUDM/chatglm-6b/blob/1d240ba371910e9282298d4592532d7f0f3e9f3e/modeling_chatglm.py#L1302-L1308
@@ -267,7 +280,7 @@ class Conversation:
             return ret
         elif self.sep_style == SeparatorStyle.DEEPSEEK_CHAT:
             seps = [self.sep, self.sep2]
-            ret = system_prompt
+            ret = "" #system_prompt
             for i, (role, message) in enumerate(self.messages):
                 if message:
                     ret += role + ": " + message + seps[i % 2]
@@ -1189,6 +1202,18 @@ register_conv_template(
     )
 )
 
+register_conv_template(
+        Conversation(
+            name="internlm2",
+            
+            system_template=f"<|im_start|>system\nYou are an AI assistant whose name is InternLM (书生·浦语).\n- InternLM (书生·浦语) is a conversational language model that is developed by Shanghai AI Laboratory (上海人工智能实验室). It is designed to be helpful, honest, and harmless.\n- InternLM (书生·浦语) can understand and communicate fluently in the language chosen by the user such as English and 中文.",           
+            roles=("<|im_start|>user", "<|im_start|>assistant"),
+            sep_style=SeparatorStyle.INTERNLM2,
+            sep="<|im_end|>"
+        )
+    )
+
+
 # StarChat template
 # reference: https://huggingface.co/spaces/HuggingFaceH4/starchat-playground/blob/main/dialogues.py
 register_conv_template(
@@ -1258,16 +1283,18 @@ register_conv_template(
     )
 )
 
-# Llama-3 Template
+# Llama-3 Template <|begin_of_text|>
 register_conv_template(
         Conversation(
             name="llama-3",
-            system_template="<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{system_message}<|eot_id|>",            
+            system_template="<|start_header_id|>system<|end_header_id|>\n\n{system_message}<|eot_id|>",            
             roles=["<|start_header_id|>user<|end_header_id|>\n\n", "<|start_header_id|>assistant<|end_header_id|>\n\n"],
             sep_style=SeparatorStyle.LLAMA3,
             sep="<|eot_id|>",
         )
     )
+
+
 
 register_conv_template(
     Conversation(

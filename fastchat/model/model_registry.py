@@ -583,6 +583,13 @@ register_model_info(
 )
 
 register_model_info(
+    ["internlm/internlm2-chat-20b"],
+    "InternLM2",
+    "https://huggingface.co/internlm/internlm2-chat-20b",
+    "A multi-language large-scale language model (LLM), developed by SHLAB.",
+)
+
+register_model_info(
     ["Qwen-7B-Chat"],
     "Qwen",
     "https://huggingface.co/Qwen/Qwen-7B-Chat",

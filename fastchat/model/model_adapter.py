@@ -1478,12 +1478,26 @@ class NousHermesAdapter(BaseModelAdapter):
     def get_default_conv_template(self, model_path: str) -> Conversation:
         return get_conv_template("alpaca")
 
+class InternLM2Adapter(BaseModelAdapter):
+    """The model adapter for Llama-2 (e.g., meta-llama/Llama-2-7b-hf)"""
+
+    def match(self, model_path: str):
+        return "internlm2" in model_path.lower()
+
+    def load_model(self, model_path: str, from_pretrained_kwargs: dict):
+        model, tokenizer = super().load_model(model_path, from_pretrained_kwargs)
+        model.config.eos_token_id = tokenizer.eos_token_id
+        model.config.pad_token_id = tokenizer.pad_token_id
+        return model, tokenizer
+
+    def get_default_conv_template(self, model_path: str) -> Conversation:
+        return get_conv_template("internlm2")
 
 class InternLMChatAdapter(BaseModelAdapter):
     """The model adapter for internlm/internlm-chat-7b"""
 
     def match(self, model_path: str):
-        return "internlm" in model_path.lower()
+        return "internlm" in model_path.lower() and "internlm2" not in model_path.lower()
 
     def load_model(self, model_path: str, from_pretrained_kwargs: dict):
         revision = from_pretrained_kwargs.get("revision", "main")
@@ -1560,6 +1574,7 @@ class Llama3Adapter(BaseModelAdapter):
 
     def get_default_conv_template(self, model_path: str) -> Conversation:
         return get_conv_template("llama-3")
+
 
 class CuteGPTAdapter(BaseModelAdapter):
     """The model adapter for CuteGPT"""
@@ -2452,6 +2467,7 @@ register_model_adapter(BaichuanAdapter)
 register_model_adapter(XGenAdapter)
 register_model_adapter(PythiaAdapter)
 register_model_adapter(InternLMChatAdapter)
+register_model_adapter(InternLM2Adapter)
 register_model_adapter(StarChatAdapter)
 register_model_adapter(Llama2Adapter)
 register_model_adapter(Llama3Adapter)
